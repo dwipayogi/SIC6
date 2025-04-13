@@ -21,6 +21,16 @@ def get_data():
         data.append(item)
     return jsonify(data)
 
+@app.route('/data/latest', methods=['GET'])
+def get_latest_data():
+    latest_item = collection.find_one(sort=[("timestamp", -1)])
+        
+    if latest_item:
+        latest_item['_id'] = str(latest_item['_id'])
+        return jsonify(latest_item)
+    else:
+        return jsonify({"message": "No data found"}), 404
+
 @app.route('/data/temperature', methods=['GET'])
 def get_temperature():
     data = []
@@ -69,7 +79,6 @@ def post_data():
         'timestamp': datetime.now()
     }
     
-    # Masukkan data ke MongoDB
     collection.insert_one(data)
     return jsonify({'message': 'Data berhasil disimpan'})
 

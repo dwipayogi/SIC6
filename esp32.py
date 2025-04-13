@@ -11,7 +11,7 @@ SSID = "OMAHKU"
 PASSWORD = "20192019"
 
 # Konfigurasi HTTP Server (Flask API)
-HTTP_URL = "http://krgv217k-5000.asse.devtunnels.ms/data/post"
+HTTP_URL = "http://samsung.yogserver.web.id/data/post"
 
 # Konfigurasi MQTT
 MQTT_CLIENT_ID = "67b82d7f661d433259fe955d"
