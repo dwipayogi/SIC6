@@ -7,11 +7,11 @@ import dht
 import urequests
 
 # Konfigurasi WiFi
-SSID = "OMAHKU"
-PASSWORD = "20192019"
+SSID = "YourWiFiSSID"
+PASSWORD = "YourWiFiPassword"
 
 # Konfigurasi HTTP Server (Flask API)
-HTTP_URL = "http://samsung.yogserver.web.id/data/post"
+HTTP_URL = "https://samsung.yogserver.web.id/data/post"
 
 # Konfigurasi MQTT
 MQTT_CLIENT_ID = "67b82d7f661d433259fe955d"
