@@ -6,6 +6,8 @@ import os
 from PIL import Image
 import time
 
+st.set_page_config(page_title="EduDetect - Deteksi", layout="wide")
+
 # Inisialisasi Streamlit session state
 if 'run' not in st.session_state:
     st.session_state.run = False
@@ -18,7 +20,7 @@ cascPath = os.path.join("src", "haarcascade_frontalface_default.xml")  # Pastika
 faceCascade = cv2.CascadeClassifier(cascPath)
 
 if faceCascade.empty():
-    st.error("Error: Haarcascade tidak ditemukan.")
+    st.error("Kesalahan: Haarcascade tidak ditemukan.")
     st.stop()
 
 st.title("Deteksi Wajah dari ESP32-CAM")
@@ -26,10 +28,10 @@ st.title("Deteksi Wajah dari ESP32-CAM")
 # Tombol kontrol kamera
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Start"):
+    if st.button("Mulai"):
         st.session_state.run = True
 with col2:
-    if st.button("Stop"):
+    if st.button("Berhenti"):
         st.session_state.run = False
 
 # Placeholder untuk video & teks
@@ -69,13 +71,13 @@ if st.session_state.run:
 
             # Output jumlah wajah
             if face_count == 0:
-                text_placeholder.info("No person detected.")
+                text_placeholder.info("Tidak ada orang terdeteksi.")
             elif face_count == 1:
-                text_placeholder.success("One person detected.")
+                text_placeholder.success("Satu orang terdeteksi.")
             elif face_count == 2:
-                text_placeholder.success("Two persons detected.")
+                text_placeholder.success("Dua orang terdeteksi.")
             else:
-                text_placeholder.success(f"{face_count} persons detected.")
+                text_placeholder.success(f"{face_count} orang terdeteksi.")
                 
             time.sleep(0.1)
 
@@ -83,4 +85,9 @@ if st.session_state.run:
             st.error(f"Terjadi kesalahan: {e}")
             break
 else:
-    st.info("Klik 'Start' untuk mulai membaca dari ESP32-CAM.")
+    st.info("Klik 'Mulai' untuk mulai membaca dari ESP32-CAM.")
+
+# Dokumentasi:
+# - Seluruh tampilan aplikasi telah diterjemahkan ke Bahasa Indonesia.
+# - Komentar kode juga menggunakan Bahasa Indonesia untuk memudahkan pengembangan.
+# - Fungsi utama: deteksi wajah secara real-time dari kamera ESP32-CAM.

@@ -1,3 +1,15 @@
+# Dokumentasi:
+# API Flask untuk monitoring sensor lingkungan.
+# Endpoint:
+#   GET    /                -> Selamat datang
+#   GET    /data            -> Semua data sensor
+#   GET    /data/latest     -> Data sensor terbaru
+#   GET    /data/temperature-> Data suhu
+#   GET    /data/humidity   -> Data kelembaban
+#   GET    /data/motion     -> Data gerak
+#   POST   /data/post       -> Kirim data sensor
+# Seluruh teks dan pesan menggunakan Bahasa Indonesia.
+
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
 from datetime import datetime
@@ -11,7 +23,7 @@ collection = db['sensor']
 
 @app.route('/')
 def home():
-    return "Welcome to Flask-MongoDB API"
+    return "Selamat datang di API Flask-MongoDB untuk monitoring lingkungan."
 
 @app.route('/data', methods=['GET'])
 def get_data():
@@ -29,7 +41,7 @@ def get_latest_data():
         latest_item['_id'] = str(latest_item['_id'])
         return jsonify(latest_item)
     else:
-        return jsonify({"message": "No data found"}), 404
+        return jsonify({"pesan": "Data tidak ditemukan"}), 404
 
 @app.route('/data/temperature', methods=['GET'])
 def get_temperature():
@@ -37,8 +49,8 @@ def get_temperature():
     for item in collection.find():
         item['_id'] = str(item['_id'])
         data.append({
-            'temperature': item['temperature'],
-            'timestamp': item['timestamp']
+            'suhu': item['temperature'],
+            'waktu': item['timestamp']
         })
     return jsonify(data)
 
@@ -48,8 +60,8 @@ def get_humidity():
     for item in collection.find():
         item['_id'] = str(item['_id'])
         data.append({
-            'humidity': item['humidity'],
-            'timestamp': item['timestamp']
+            'kelembaban': item['humidity'],
+            'waktu': item['timestamp']
         })
     return jsonify(data)
 
@@ -59,8 +71,8 @@ def get_motion():
     for item in collection.find():
         item['_id'] = str(item['_id'])
         data.append({
-            'motion': item['motion'],
-            'timestamp': item['timestamp']
+            'gerak': item['motion'],
+            'waktu': item['timestamp']
         })
     return jsonify(data)
 
@@ -80,7 +92,7 @@ def post_data():
     }
     
     collection.insert_one(data)
-    return jsonify({'message': 'Data berhasil disimpan'})
+    return jsonify({'pesan': 'Data berhasil disimpan'})
 
 if __name__ == '__main__':
     app.run(debug=True)

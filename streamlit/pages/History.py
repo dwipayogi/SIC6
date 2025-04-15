@@ -4,55 +4,60 @@ import pandas as pd
 import json
 import time
 
-st.set_page_config(page_title="EduDetect - History", layout="wide")
+st.set_page_config(page_title="EduDetect - Riwayat Data", layout="wide")
 
-# Add sidebar
-st.sidebar.header("Data History")
-st.sidebar.write("This page displays historical data.")
+# Sidebar
+st.sidebar.header("Riwayat Data")
+st.sidebar.write("Halaman ini menampilkan data historis.")
 
-# Main content
-st.title("Data History")
-st.subheader("Historical Data")
-st.write("This section shows historical data points.")
+# Konten utama
+st.title("Riwayat Data")
+st.subheader("Data Historis")
+st.write("Bagian ini menampilkan data historis yang telah terekam.")
 
 placeholder = st.empty()
 
-# Function to fetch data from the server
-@st.cache_data(ttl=300)  # Cache the data for 5 minutes
+# Fungsi untuk mengambil data dari server
+@st.cache_data(ttl=300)  # Cache data selama 5 menit
 def fetch_data():
     try:
         response = requests.get("https://samsung.yogserver.web.id/data")
         if response.status_code == 200:
             return response.json()
         else:
-            st.error(f"Error fetching data: {response.status_code}")
+            st.error(f"Terjadi kesalahan saat mengambil data: {response.status_code}")
             return None
     except Exception as e:
-        st.error(f"Error: {e}")
+        st.error(f"Terjadi kesalahan: {e}")
         return None
 
-# Create a container for displaying last refresh time
+# Kontainer untuk menampilkan waktu refresh terakhir
 refresh_info = st.container()
 last_refresh = st.empty()
 
-# Add a refresh button
+# Tombol refresh
 col1, col2 = st.columns([1, 5])
 with col1:
-    if st.button("Refresh Data"):
-        # Clear the cache to force a fresh data fetch
+    if st.button("Muat Ulang Data"):
+        # Hapus cache untuk mengambil data terbaru
         fetch_data.clear()
-        # Update the last refresh time
+        # Perbarui waktu refresh terakhir
         current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        last_refresh.text(f"Last refreshed: {current_time}")
+        last_refresh.text(f"Terakhir dimuat ulang: {current_time}")
 
-# Fetch and display data
+# Ambil dan tampilkan data
 data = fetch_data()
 
 if data:
-    # Display the data in the placeholder
+    # Tampilkan data pada placeholder
     with placeholder.container():
-      df = pd.DataFrame(data)
-      st.dataframe(df)
+        df = pd.DataFrame(data)
+        st.dataframe(df)
 else:
     with placeholder.container():
-        st.warning("No data available. Please check the server connection.")
+        st.warning("Data tidak tersedia. Silakan periksa koneksi server.")
+
+# Dokumentasi:
+# - Seluruh tampilan aplikasi telah diterjemahkan ke Bahasa Indonesia.
+# - Komentar kode juga menggunakan Bahasa Indonesia untuk memudahkan pengembangan.
+# - Fungsi utama: menampilkan data historis dari server.
