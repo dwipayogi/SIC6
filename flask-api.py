@@ -1,15 +1,3 @@
-# Dokumentasi:
-# API Flask untuk monitoring sensor lingkungan.
-# Endpoint:
-#   GET    /                -> Selamat datang
-#   GET    /data            -> Semua data sensor
-#   GET    /data/latest     -> Data sensor terbaru
-#   GET    /data/temperature-> Data suhu
-#   GET    /data/humidity   -> Data kelembaban
-#   GET    /data/motion     -> Data gerak
-#   POST   /data/post       -> Kirim data sensor
-# Seluruh teks dan pesan menggunakan Bahasa Indonesia.
-
 from flask import Flask, jsonify, request
 from pymongo import MongoClient
 from datetime import datetime
@@ -19,64 +7,73 @@ app = Flask(__name__)
 # Konfigurasi MongoDB
 client = MongoClient('mongodb+srv://dwipayogi:X27wFWT5UMgfm_M@cluster0.tcyfwz4.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
 db = client['samsung']
-collection = db['sensor']
+collection_sensor = db['sensor']
+collection_streamlit = db['streamlit']
 
 @app.route('/')
 def home():
-    return "Selamat datang di API Flask-MongoDB untuk monitoring lingkungan."
+    return "Welcome to Flask-MongoDB API"
 
-@app.route('/data', methods=['GET'])
-def get_data():
+@app.route('/data/latest', methods=['GET'])
+def get_latest_data():
+    latest_data = collection_sensor.find_one(sort=[("timestamp", -1)])
+        
+    if latest_data:
+        latest_data['_id'] = str(latest_data['_id'])
+        return jsonify(latest_data)
+    else:
+        return jsonify({"message": "No data found"}), 404
+
+@app.route('/data/streamlit', methods=['GET'])
+def get_streamlit_data():
     data = []
-    for item in collection.find():
+    for item in collection_streamlit.find():
         item['_id'] = str(item['_id'])
         data.append(item)
     return jsonify(data)
 
-@app.route('/data/latest', methods=['GET'])
-def get_latest_data():
-    latest_item = collection.find_one(sort=[("timestamp", -1)])
-        
-    if latest_item:
-        latest_item['_id'] = str(latest_item['_id'])
-        return jsonify(latest_item)
-    else:
-        return jsonify({"pesan": "Data tidak ditemukan"}), 404
+@app.route('/data/sensor', methods=['GET'])
+def get_data():
+    data = []
+    for item in collection_sensor.find():
+        item['_id'] = str(item['_id'])
+        data.append(item)
+    return jsonify(data)
 
 @app.route('/data/temperature', methods=['GET'])
 def get_temperature():
     data = []
-    for item in collection.find():
+    for item in collection_sensor.find():
         item['_id'] = str(item['_id'])
         data.append({
-            'suhu': item['temperature'],
-            'waktu': item['timestamp']
+            'temperature': item['temperature'],
+            'timestamp': item['timestamp']
         })
     return jsonify(data)
 
 @app.route('/data/humidity', methods=['GET'])
 def get_humidity():
     data = []
-    for item in collection.find():
+    for item in collection_sensor.find():
         item['_id'] = str(item['_id'])
         data.append({
-            'kelembaban': item['humidity'],
-            'waktu': item['timestamp']
+            'humidity': item['humidity'],
+            'timestamp': item['timestamp']
         })
     return jsonify(data)
 
 @app.route('/data/motion', methods=['GET'])
 def get_motion():
     data = []
-    for item in collection.find():
+    for item in collection_sensor.find():
         item['_id'] = str(item['_id'])
         data.append({
-            'gerak': item['motion'],
-            'waktu': item['timestamp']
+            'motion': item['motion'],
+            'timestamp': item['timestamp']
         })
     return jsonify(data)
 
-@app.route('/data/post', methods=['POST'])
+@app.route('/data/post/sensor', methods=['POST'])
 def post_data():
     request_data = request.get_json()
 
@@ -91,8 +88,25 @@ def post_data():
         'timestamp': datetime.now()
     }
     
-    collection.insert_one(data)
-    return jsonify({'pesan': 'Data berhasil disimpan'})
+    collection_sensor.insert_one(data)
+    return jsonify({'message': 'Data berhasil disimpan'})
+
+@app.route('/data/post/streamlit', methods=['POST'])
+def post_streamlit_data():
+    request_data = request.get_json()
+
+    attentive_count = request_data.get('attentive_count')
+    inattentive_count = request_data.get('inattentive_count')
+    
+    data = {
+        'attentive_count': attentive_count,
+        'inattentive_count': inattentive_count,
+        'total_count': attentive_count + inattentive_count,
+        'timestamp': datetime.now()
+    }
+    
+    collection_streamlit.insert_one(data)
+    return jsonify({'message': 'Data berhasil disimpan'})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0')

@@ -1,18 +1,12 @@
-# Dokumentasi:
-# Dashboard Streamlit untuk monitoring lingkungan berbasis AI.
-# Semua teks dan komentar menggunakan Bahasa Indonesia.
-
 import streamlit as st
 import pandas as pd
-import numpy as np
 import requests
+import time
 from script.langchain import analyze_summary
 
 st.set_page_config(page_title="EduDetect", layout="wide")
 
 # Fungsi untuk mengambil data terbaru dari API
-# Menampilkan pesan kesalahan dalam Bahasa Indonesia
-
 def fetch_latest_data():
     try:
         response = requests.get("https://samsung.yogserver.web.id/data/latest")
@@ -28,10 +22,9 @@ def fetch_latest_data():
 # Fungsi untuk mengambil data historis (10 data terbaru)
 def fetch_historical_data():
     try:
-        response = requests.get("https://samsung.yogserver.web.id/data")
+        response = requests.get("https://samsung.yogserver.web.id/data/sensor")
         if response.status_code == 200:
             data = response.json()
-            # Ambil 10 data terbaru
             recent_data = data[-10:] if len(data) > 10 else data
             return recent_data
         else:
@@ -49,10 +42,9 @@ st.sidebar.write("EduDetect adalah sistem monitoring yang memantau kondisi lingk
 st.title("EduDetect")
 st.subheader("Dasbor Monitoring Lingkungan")
 
-# Ambil data terbaru
+# Ambil dan tampilkan data terbaru (sekali saja, di luar loop)
 latest_data = fetch_latest_data()
 
-# Tampilkan metrik dengan data nyata atau nilai cadangan
 a, b, c = st.columns(3)
 
 if latest_data:
@@ -60,8 +52,6 @@ if latest_data:
     humidity_value = f"{latest_data['humidity']}%"
     motion_value = "Aktif" if latest_data['motion'] == 1 else "Tidak Aktif"
     timestamp = latest_data['timestamp']
-    
-    # Format timestamp untuk ditampilkan
     st.caption(f"Terakhir diperbarui: {timestamp}")
 else:
     temp_value = "30°C"
@@ -72,54 +62,35 @@ a.metric("Suhu", temp_value, border=True)
 b.metric("Kelembaban", humidity_value, border=True)
 c.metric("Sensor Gerak", motion_value, border=True)
 
-# Ambil data historis untuk grafik
-historical_data = fetch_historical_data()
-
-# Proses data historis untuk grafik
-if historical_data:
-    # Ubah ke DataFrame
-    df = pd.DataFrame(historical_data)
-    
-    # Ubah timestamp ke objek datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    
-    # Urutkan berdasarkan timestamp (terbaru di akhir)
-    df = df.sort_values('timestamp')
-    
-    # Dataframe suhu
-    temp_df = df[['timestamp', 'temperature']].rename(columns={'timestamp': 'Waktu', 'temperature': 'Suhu'})
-    
-    # Dataframe kelembaban
-    humidity_df = df[['timestamp', 'humidity']].rename(columns={'timestamp': 'Waktu', 'humidity': 'Kelembaban'})
-
+# Analisis satu kali saja
 analysis = analyze_summary()
 st.success(analysis)
 
-# Grafik Suhu
-st.subheader("Data Suhu")
-st.write("Grafik berikut menampilkan 10 data suhu terbaru.")
-st.line_chart(temp_df, x='Waktu', y='Suhu', use_container_width=True)
+# Tombol untuk memulai/berhenti refresh chart
+run_charts = st.checkbox("Aktifkan Refresh Grafik Real-time", value=True)
 
-# Grafik Kelembaban
-st.subheader("Data Kelembaban")
-st.write("Grafik berikut menampilkan 10 data kelembaban terbaru.")
-st.line_chart(humidity_df, x='Waktu', y='Kelembaban', use_container_width=True)
+# Placeholder untuk grafik real-time
+temp_chart_placeholder = st.empty()
+humidity_chart_placeholder = st.empty()
 
-# Catatan: Fungsi generate_temperature_data dan generate_humidity_data digunakan sebagai cadangan
-def generate_temperature_data(num_points=10):
-    timestamps = pd.date_range(end=pd.Timestamp.now(), periods=num_points, freq='1s')
-    base_temp = 30
-    temperatures = base_temp + np.random.normal(0, 1, size=num_points)
-    return pd.DataFrame({
-        'Waktu': timestamps,
-        'Suhu': temperatures
-    })
+# Loop hanya untuk chart
+while run_charts:
+    historical_data = fetch_historical_data()
 
-def generate_humidity_data(num_points=10):
-    timestamps = pd.date_range(end=pd.Timestamp.now(), periods=num_points, freq='1s')
-    base_humidity = 50
-    humidity = base_humidity + np.random.normal(0, 5, size=num_points)
-    return pd.DataFrame({
-        'Waktu': timestamps,
-        'Kelembaban': humidity
-    })
+    if historical_data:
+        df = pd.DataFrame(historical_data)
+        df['timestamp'] = pd.to_datetime(df['timestamp'])
+        df = df.sort_values('timestamp')
+
+        temp_df = df[['timestamp', 'temperature']].rename(columns={'timestamp': 'Waktu', 'temperature': 'Suhu'})
+        humidity_df = df[['timestamp', 'humidity']].rename(columns={'timestamp': 'Waktu', 'humidity': 'Kelembaban'})
+
+        with temp_chart_placeholder.container():
+            st.subheader("Data Suhu (Real-time)")
+            st.line_chart(temp_df, x='Waktu', y='Suhu', use_container_width=True)
+
+        with humidity_chart_placeholder.container():
+            st.subheader("Data Kelembaban (Real-time)")
+            st.line_chart(humidity_df, x='Waktu', y='Kelembaban', use_container_width=True)
+
+    time.sleep(2)
